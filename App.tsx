@@ -29,14 +29,7 @@ import * as Updates from 'expo-updates';
 import {enableScreens} from "react-native-screens";
 import * as TaskManager from "expo-task-manager";
 import * as BackgroundFetch from 'expo-background-fetch';
-import {AppOwnership} from "expo-constants/src/Constants.types";
 import {receiveBackgroundLocationUpdates} from './src/utils/Permissions';
-
-/**
- * import branch only if the app is not running in Expo Go (so we can actually run the application without Branch for
- * Expo Go), for easier testing purposes.
- */
-const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
 
 /**
  * name of the task to register for receiving periodic background updates for location
@@ -301,26 +294,24 @@ export default function App() {
         }
 
         // ask for the user's permission to track background location
-        if (isRunningInExpoGo) {
-            const backgroundPermissionStatus = await Location.requestBackgroundPermissionsAsync();
-            if (backgroundPermissionStatus.status !== 'granted') {
-                const errorMessage = `Permission to access Background Location was not granted!`;
-                console.log(errorMessage);
-                logEvent(errorMessage, LoggingLevel.Warning, false).then(() => {
-                });
-            } else {
-                const errorMessage = `Permission to access Background Location was granted!`;
-                console.log(errorMessage);
-                logEvent(errorMessage, LoggingLevel.Info, false).then(() => {
-                });
+        const backgroundPermissionStatus = await Location.requestBackgroundPermissionsAsync();
+        if (backgroundPermissionStatus.status !== 'granted') {
+            const errorMessage = `Permission to access Background Location was not granted!`;
+            console.log(errorMessage);
+            logEvent(errorMessage, LoggingLevel.Warning, false).then(() => {
+            });
+        } else {
+            const errorMessage = `Permission to access Background Location was granted!`;
+            console.log(errorMessage);
+            logEvent(errorMessage, LoggingLevel.Info, false).then(() => {
+            });
 
-                // startup/register the background location fetch task
-                startupBackgroundFetchLocationTask().then(() => {
-                    // startups/register the background location subscription task
-                    receiveBackgroundLocationUpdates(LOCATION_BACKGROUND_UPDATES_TASK).then(() => {
-                    });
+            // startup/register the background location fetch task
+            startupBackgroundFetchLocationTask().then(() => {
+                // startups/register the background location subscription task
+                receiveBackgroundLocationUpdates(LOCATION_BACKGROUND_UPDATES_TASK).then(() => {
                 });
-            }
+            });
         }
     }
 
